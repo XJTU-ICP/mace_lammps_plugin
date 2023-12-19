@@ -1,0 +1,26 @@
+# bulk water
+
+units           metal
+boundary        p p p
+atom_style      atomic
+atom_modify map yes
+
+neighbor        2.0 bin
+neigh_modify    every 10 delay 0 check no
+
+read_data	data.water
+mass 		1 16
+mass		2 1
+
+pair_style mace no_domain_decomposition
+pair_coeff * * 2023-08-14-mace-yuan-trained-mptrj-04.model-lammps.pt O H
+
+velocity        all create 330.0 23456789
+
+fix             1 all npt temp 330.0 330.0 0.1 iso 1 1 1
+timestep        0.001
+thermo_style    custom step pe ke etotal temp press vol
+thermo          10
+dump		1 all custom 10 water.dump id type x y z 
+
+run             100
