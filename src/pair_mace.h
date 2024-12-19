@@ -15,6 +15,9 @@
    Modified from https://github.com/ACEsuit/lammps
    by:
       William C Witt (University of Cambridge)
+   Modified from https://github.com/pobo95/pair_mace
+   by:
+      pjpark (POSTECH)
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -27,7 +30,7 @@ PairStyle(mace,PairMACE);
 #define LMP_PAIR_MACE_H
 
 #include "pair.h"
-
+#include <vector>
 #include <torch/torch.h>
 #include <torch/script.h>
 

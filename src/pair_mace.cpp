@@ -15,6 +15,9 @@
    Modified from https://github.com/ACEsuit/lammps
    by:
       William C Witt (University of Cambridge)
+   Modified from https://github.com/pobo95/pair_mace
+   by:
+      pjpark (POSTECH)
 ------------------------------------------------------------------------- */
 
 #include "pair_mace.h"
@@ -28,8 +31,14 @@
 #include "neighbor.h"
 
 #include <algorithm>
+#include <vector>
 #include <iostream>
 #include <stdexcept>
+
+#include <torch/torch.h>
+#include <torch/script.h>
+#include <torch/csrc/jit/runtime/graph_executor.h>
+
 
 using namespace LAMMPS_NS;
 
@@ -260,12 +269,26 @@ void PairMACE::compute(int eflag, int vflag)
     virial[5] += 0.5*(vir[0][2][1].item<double>() + vir[0][1][2].item<double>());
   }
 
+
+
   // mace site virials
-  //   -> not available
+  //   ->  - Added by Pyungjin Park, Department of Physics, POSTECH, Republic of Korea
   if (vflag_atom) {
-    error->all(FLERR, "ERROR: pair_mace does not support vflag_atom.");
+    auto atomic_virial = output.at("atom_virial").toTensor().cpu();
+    for (int ii = 0; ii < n_nodes; ii++)
+    {
+      int i = list-> ilist[ii];
+      vatom[i][0] +=  atomic_virial[i][0][0].item<double>(); // xx
+      vatom[i][1] +=  atomic_virial[i][1][1].item<double>(); // yy 
+      vatom[i][2] +=  atomic_virial[i][2][2].item<double>(); // zz
+      vatom[i][3] +=  0.5*(atomic_virial[i][0][1]+atomic_virial[i][1][0]).item<double>(); // xy
+      vatom[i][4] +=  0.5*(atomic_virial[i][0][2]+atomic_virial[i][2][0]).item<double>(); // xz
+      vatom[i][5] +=  0.5*(atomic_virial[i][1][2]+atomic_virial[i][2][1]).item<double>(); // yz
+    }
   }
 }
+
+
 
 /* ---------------------------------------------------------------------- */
 

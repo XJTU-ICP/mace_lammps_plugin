@@ -3,9 +3,8 @@ message(STATUS "enable LAMMPS plugin mode")
 add_library(maceLammpsPlugin INTERFACE)
 
 target_include_directories(maceLammpsPlugin INTERFACE ${LAMMPS_INCLUDE_DIRS})
-find_package(LAMMPS REQUIRED)
+# find_package(LAMMPS REQUIRED)
 message(STATUS "LAMMPS version: ${LAMMPS_VERSION}")
-target_link_libraries(maceLammpsPlugin INTERFACE LAMMPS::lammps)
 
 find_package(MPI REQUIRED)
 
@@ -19,19 +18,8 @@ message(STATUS "MPI_LIBRARIES
 is ${MPI_LIBRARIES}")
 target_link_libraries(maceLammpsPlugin INTERFACE MPI::MPI_CXX)
 
-if (NOT LAMMPS_VERSION_NUMBER)
-  set(LAMMPS_VERSION_NUMBER ${LAMMPS_VERSION} PARENT_SCOPE)
-  set(LAMMPS_VERSION_NUMBER ${LAMMPS_VERSION})
-  message(STATUS "Use LAMMPS_VERSION from find_package: ${LAMMPS_VERSION}")
-else()
-  set(LAMMPS_VERSION_NUMBER
-      ${LAMMPS_VERSION_NUMBER}
-      PARENT_SCOPE)
-endif()
-
 file(GLOB LMP_PLUGIN_SRC *.cpp ../*.cpp)
 message(LMP_PLUGIN_SRC: ${LMP_PLUGIN_SRC})
-message(LAMMPS_VERSION_NUMBER: ${LAMMPS_VERSION_NUMBER})
 
 function(_add_lmp_plugin_variant variant_name prec_def)
   set(libname "mace_lmp${variant_name}")
@@ -56,10 +44,10 @@ function(_add_lmp_plugin_variant variant_name prec_def)
     ${libname}
     PUBLIC ${prec_def}
     PRIVATE "LMPPLUGIN" # fix header path
-    PRIVATE "LAMMPS_VERSION_NUMBER=${LAMMPS_VERSION_NUMBER}")
+)
   install(TARGETS ${libname} DESTINATION lib/)
 
-  if(${LAMMPS_VERSION_NUMBER} GREATER_EQUAL 20220324)
+
     set(PLUGINNAME "mace_lammpsplugin.so")
     #lammps need the plugin named end with 'plugin'
     install(
@@ -73,7 +61,7 @@ function(_add_lmp_plugin_variant variant_name prec_def)
 	../${CMAKE_SHARED_LIBRARY_PREFIX}${libname}${CMAKE_SHARED_LIBRARY_SUFFIX} \
       ${CMAKE_INSTALL_PREFIX}/lib/${libname}/${PLUGINNAME}   \
       )")
-  endif()
+
 
 endfunction()
 _add_lmp_plugin_variant("high" "")
